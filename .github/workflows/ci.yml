@@ -31,8 +31,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-          cache: true
-          cache-dependency-path: '**/*.csproj'
 
       - name: Restore
         run: dotnet restore FluxoDeCaixa.sln
@@ -63,8 +61,6 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-          cache: true
-          cache-dependency-path: '**/*.csproj'
 
       - name: Restore
         run: dotnet restore FluxoDeCaixa.sln
