@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\FluxoDeCaixa.Lancamentos.Domain\FluxoDeCaixa.Lancamentos.Domain.csproj" />
+    <ProjectReference Include="..\FluxoDeCaixa.Contracts\FluxoDeCaixa.Contracts.csproj" />
+  </ItemGroup>
+</Project>

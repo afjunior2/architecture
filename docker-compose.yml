@@ -1,0 +1,104 @@
+# Fluxo de Caixa. Ambiente local completo:
+#
+#   docker compose up --build
+#
+# Lançamentos API:  http://localhost:8081
+# Consolidado API:  http://localhost:8082
+# Worker (health):  http://localhost:8083/health/ready
+# RabbitMQ UI:      http://localhost:15672 (fluxo/fluxo)
+
+name: fluxo-de-caixa
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fluxodecaixa
+    ports: ["5432:5432"]
+    volumes:
+      - ./infra/local/postgres-init.sql:/docker-entrypoint-initdb.d/10-init.sql:ro
+      - postgres-dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fluxodecaixa"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: fluxo
+      RABBITMQ_DEFAULT_PASS: fluxo
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  lancamentos-api:
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: src/FluxoDeCaixa.Lancamentos.Api/Dockerfile
+    ports: ["8081:8080"]
+    environment:
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=fluxodecaixa;Username=app_lancamentos;Password=app_lancamentos;Search Path=lancamentos
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Usuario: fluxo
+      RabbitMq__Senha: fluxo
+    depends_on:
+      postgres: { condition: service_healthy }
+      # RabbitMQ de propósito NÃO é dependência: a API sobe e aceita lançamentos
+      # com o broker fora do ar. A outbox acumula e drena quando ele voltar.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health/ready > /dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+
+  consolidado-api:
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: src/FluxoDeCaixa.Consolidado.Api/Dockerfile
+    ports: ["8082:8080"]
+    environment:
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=fluxodecaixa;Username=app_consolidado;Password=app_consolidado;Search Path=consolidado
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health/ready > /dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+
+  consolidado-worker:
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: src/FluxoDeCaixa.Consolidado.Worker/Dockerfile
+    ports: ["8083:8080"]
+    environment:
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=fluxodecaixa;Username=app_consolidado;Password=app_consolidado;Search Path=consolidado
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Usuario: fluxo
+      RabbitMq__Senha: fluxo
+    depends_on:
+      postgres: { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health/ready > /dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 15s
+
+volumes:
+  postgres-dados:

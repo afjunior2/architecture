@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Contrato publicado entre os dois serviços. Muda por versionamento, nunca por refatoração interna. -->
+</Project>
