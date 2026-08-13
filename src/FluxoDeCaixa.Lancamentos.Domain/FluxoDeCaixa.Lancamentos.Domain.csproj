@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Sem dependências externas. Isso é verificado por teste de arquitetura. -->
+</Project>
