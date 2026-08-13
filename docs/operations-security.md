@@ -10,7 +10,7 @@ A chave de idempotência já é escopada por merchant na PK `(merchant_id, chave
 
 Transporte e dados: TLS 1.2+ na borda em produção (o compose local usa HTTP simples e diz isso). Criptografia em repouso pelo serviço gerenciado de banco. Valores monetários não aparecem em log.
 
-Segredos: nada versionado no repositório; gitleaks roda no CI e falha o build. Local usa defaults de desenvolvimento explícitos no compose. Produção usa cofre de segredos (Key Vault ou Secrets Manager) com identidade gerenciada, sem credencial em variável de configuração de longa duração, e rotação periódica.
+Segredos: nada versionado no repositório. O CI valida dependências com vulnerabilidades conhecidas, incluindo dependências transitivas. Local usa defaults de desenvolvimento explícitos no compose. Produção usa cofre de segredos (Key Vault ou Secrets Manager) com identidade gerenciada, sem credencial em variável de configuração de longa duração, e rotação periódica.
 
 Menor privilégio no banco: `app_lancamentos` e `app_consolidado` só enxergam o próprio schema, garantido por GRANT, desde o ambiente local. A fronteira entre os serviços não depende de disciplina de código.
 

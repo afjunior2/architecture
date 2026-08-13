@@ -10,7 +10,7 @@ API de Lançamentos:
 Disponibilidade alvo:      >= 99,9%
 Erro em condição normal:   < 1%
 p95 de escrita:            < 200 ms
-Perda de lançamento aceito: zero (não negociável)
+Lançamento confirmado pela API não pode ser perdido por falha de mensageria ou consolidação.
 ```
 
 API de Consolidado:
@@ -35,7 +35,7 @@ Com essas três métricas o time responde às duas perguntas operacionais que im
 
 ## Capacidade para 50 req/s
 
-A conta é curta. A consulta do consolidado é um index scan de uma linha por chave `(merchant_id, data)`. Uma réplica modesta do Postgres atende centenas de leituras simples por segundo; 50 req/s ocupam uma fração pequena de uma única instância da API. Pela lei de Little, com latência de serviço em torno de 15 ms, 50 req/s significam menos de uma requisição concorrente em média.
+A consulta do consolidado é um index scan de uma linha por chave `(merchant_id, data)`. Para o requisito de 50 req/s, a primeira versão mantém o PostgreSQL como read model da consulta. Os testes de carga (`tests/load/consolidado.js`, ver Verificação) validaram essa decisão no ambiente local utilizado para execução; os resultados são evidência de capacidade e headroom da implementação, não benchmark ou SLA de produção.
 
 Por isso não há cache. Redis entraria como componente extra, com invalidação para acertar e mais um modo de falha, para resolver um problema que não existe nesta escala. Se as métricas mostrarem o banco pressionado pela leitura, o caminho está descrito na evolução.
 

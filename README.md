@@ -56,7 +56,7 @@ curl http://localhost:8082/api/v1/consolidado/$(date -u +%F) \
 
 A resposta inclui `atualizadoEm` e `consistencia: eventual`. O consolidado pode estar alguns segundos atrás da escrita, e a API diz isso em vez de esconder.
 
-O roteiro completo de demonstração (parar o worker, seguir registrando, religar, conferir convergência, reenviar chave repetida) está automatizado em `scripts/demo.sh` e roda no CI a cada push.
+O roteiro completo de demonstração (parar o worker, seguir registrando, religar, conferir convergência, reenviar chave repetida) está automatizado em `scripts/demo.sh` e roda no CI em pull requests e em pushes para a main.
 
 ## Como testar
 
